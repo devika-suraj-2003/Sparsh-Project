@@ -121,18 +121,36 @@ function App() {
     return Object.values(errors).every((v) => !v);
   };
 
-  const handleSignInSubmit = async () => {
-    if (!validateSignIn()) return;
-    setSignInLoading(true);
-    try {
-      // simulate API
-      await new Promise((r) => setTimeout(r, 800));
-      // success
-      navigate('/dashboard');
-    } finally {
-      setSignInLoading(false);
+const handleSignInSubmit = async () => {
+  if (!validateSignIn()) return;
+
+  setSignInLoading(true);
+
+  try {
+    const response = await fetch("http://127.0.0.1:8000/login", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        email: signInData.email,
+        password: signInData.password,
+      }),
+    });
+
+    const data = await response.json();
+
+    if (data.message === "Login Successful") {
+      navigate("/dashboard");
+    } else {
+      alert(data.message);
     }
-  };
+  } catch (error) {
+    alert("Server Connection Failed");
+  } finally {
+    setSignInLoading(false);
+  }
+};
 
   const handleSignUpSubmit = async () => {
     if (!validateSignUp()) return;
