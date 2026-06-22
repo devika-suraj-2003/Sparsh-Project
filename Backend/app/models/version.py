@@ -1,5 +1,6 @@
 from sqlalchemy import Column, Integer, String, ForeignKey, DateTime
 from sqlalchemy.sql import func
+from sqlalchemy.orm import relationship
 
 from app.db.database import Base
 
@@ -13,8 +14,11 @@ class Version(Base):
         Integer,
         ForeignKey("boards.board_id"),
         nullable=False
-    )
 
+    
+    )
+    bom_items = relationship("BOM")
+    
     version_name = Column(String(100), nullable=False)
 
     description = Column(String(500), nullable=True)
