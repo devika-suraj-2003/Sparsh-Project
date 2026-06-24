@@ -4,3 +4,5 @@ from app.models.project import Project
 from app.models.board import Board
 from app.models.version import Version
 from .bom import BOM
+from .vendor import Vendor
+from .vendor_quote import VendorQuote

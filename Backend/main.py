@@ -7,6 +7,8 @@ from app.api.board import router as board_router
 from app.api.version import router as version_router
 from app.api.bom import router as bom_router
 from app.api.bom_upload import router as bom_upload
+from app.api.vendor import router as vendor_router
+from app.api.vendor_quote import router as vendor_quote_router
 
 
 app = FastAPI()
@@ -25,6 +27,8 @@ app.include_router(board_router)
 app.include_router(version_router)
 app.include_router(bom_router)
 app.include_router(bom_upload)
+app.include_router(vendor_router)
+app.include_router(vendor_quote_router)
 
 @app.get("/")
 def root():

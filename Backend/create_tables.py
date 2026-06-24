@@ -6,6 +6,8 @@ from app.models.user import User
 from app.models.project import Project
 from app.models.board import Board
 from app.models.version import Version
+from app.models.vendor import Vendor
+from app.models.vendor_quote import VendorQuote
 
 Base.metadata.create_all(bind=engine)
 
