@@ -1,6 +1,11 @@
-from fastapi import APIRouter, UploadFile, File
+from fastapi import APIRouter, UploadFile, File, Form, Depends
+from sqlalchemy.orm import Session
+
 import os
 import pandas as pd
+
+from app.db.database import get_db
+from app.models.bom import BOM
 
 router = APIRouter(
     prefix="/bom",
@@ -12,16 +17,23 @@ os.makedirs(UPLOAD_DIR, exist_ok=True)
 
 
 @router.post("/upload")
-async def upload_bom(file: UploadFile = File(...)):
+async def upload_bom(
+    version_id: int = Form(...),
+    file: UploadFile = File(...),
+    db: Session = Depends(get_db)
+):
 
     # Save uploaded file
-    file_path = os.path.join(UPLOAD_DIR, file.filename)
+    file_path = os.path.join(
+        UPLOAD_DIR,
+        file.filename
+    )
 
     with open(file_path, "wb") as buffer:
         content = await file.read()
         buffer.write(content)
 
-    # Read raw excel without assuming headers
+    # Read Excel without assuming headers
     raw_df = pd.read_excel(
         file_path,
         header=None
@@ -45,20 +57,20 @@ async def upload_bom(file: UploadFile = File(...)):
             header_row = index
             break
 
-    # Safety check
     if header_row is None:
         return {
             "error": "Unable to detect BOM header row"
         }
 
-    # Read BOM using detected header
+    # Read BOM with detected header
     bom_df = pd.read_excel(
         file_path,
         header=header_row
     )
 
-    # Column mapping definitions
+    # Column mapping
     column_mapping = {
+
         "reference_designator": [
             "reference",
             "reference designator",
@@ -90,7 +102,6 @@ async def upload_bom(file: UploadFile = File(...)):
         ]
     }
 
-    # Detect matching columns
     detected_mapping = {}
 
     for db_field, possible_names in column_mapping.items():
@@ -103,50 +114,67 @@ async def upload_bom(file: UploadFile = File(...)):
                 detected_mapping[db_field] = column
                 break
 
-    # Extract BOM records
+    # Extract records
     bom_records = []
 
     for _, row in bom_df.iterrows():
 
         record = {
             "reference_designator": row.get(
-                detected_mapping.get("reference_designator")
+                detected_mapping.get(
+                    "reference_designator"
+                )
             ),
 
             "manufacturer_part_number": row.get(
-                detected_mapping.get("manufacturer_part_number")
+                detected_mapping.get(
+                    "manufacturer_part_number"
+                )
             ),
 
             "component_name": row.get(
-                detected_mapping.get("component_name")
+                detected_mapping.get(
+                    "component_name"
+                )
             ),
 
             "quantity_per_board": row.get(
-                detected_mapping.get("quantity_per_board")
+                detected_mapping.get(
+                    "quantity_per_board"
+                )
             ),
 
             "dnp": row.get(
-                detected_mapping.get("dnp")
+                detected_mapping.get(
+                    "dnp"
+                )
             )
         }
 
-        # Convert NaN to None
+        # Convert NaN → None
         for key, value in record.items():
+
             if pd.isna(value):
                 record[key] = None
+
+        # Skip completely empty rows
         if (
-            not record["reference_designator"] and
-            not record["manufacturer_part_number"] and
-            not record["component_name"] and
-            not record["quantity_per_board"]
+            not record["reference_designator"]
+            and not record["manufacturer_part_number"]
+            and not record["component_name"]
+            and not record["quantity_per_board"]
         ):
             continue
+
         bom_records.append(record)
 
     # Validation
     validation_errors = []
 
-    for index, record in enumerate(bom_records, start=1):
+    for index, record in enumerate(
+        bom_records,
+        start=1
+    ):
 
         if not record["reference_designator"]:
             validation_errors.append(
@@ -163,10 +191,72 @@ async def upload_bom(file: UploadFile = File(...)):
                 f"Row {index}: Missing Quantity"
             )
 
-    # Return validation result
+    if validation_errors:
+
+        return {
+            "validation_error_count": len(
+                validation_errors
+            ),
+            "validation_errors": validation_errors
+        }
+
+    # Remove existing BOM for same version
+    db.query(BOM).filter(
+        BOM.version_id == version_id
+    ).delete()
+
+    db.commit()
+
+    # Import records
+    imported_count = 0
+
+    for line_no, record in enumerate(
+        bom_records,
+        start=1
+    ):
+
+        bom_item = BOM(
+
+            version_id=version_id,
+
+            line_no=line_no,
+
+            reference_designator=record[
+                "reference_designator"
+            ],
+
+            manufacturer_part_number=record[
+                "manufacturer_part_number"
+            ],
+
+            component_name=record[
+                "component_name"
+            ],
+
+            description=record[
+                "component_name"
+            ],
+
+            quantity_per_board=int(
+                record["quantity_per_board"]
+            ),
+
+            unit="Nos",
+
+            dnp=True if record["dnp"] else False,
+
+            remarks=None
+        )
+
+        db.add(bom_item)
+        db.flush()  # Flush to assign bom_id
+
+        imported_count += 1
+
+    db.commit()
+
     return {
-        "total_records": len(bom_records),
-        "validation_error_count": len(validation_errors),
-        "validation_errors": validation_errors[:20],
-        "sample_records": bom_records[:5]
+        "message": "BOM imported successfully",
+        "version_id": version_id,
+        "records_imported": imported_count
     }
