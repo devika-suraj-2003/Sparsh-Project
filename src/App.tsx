@@ -5,6 +5,7 @@ import { AnimatePresence, motion } from 'framer-motion';
 import ProjectDetails from "./pages/ProjectDetails";
 import ProjectBom from "./pages/ProjectBom";
 import BomUpload from "./pages/BomUpload";
+import ColumnMapping from "./pages/ColumnMapping";
 import {
   
   Bell,
@@ -471,6 +472,7 @@ const handleSignInSubmit = async () => {
           <Route path="/project/:id" element={<ProjectDetails />} />
           <Route path="/project-bom" element={<ProjectBom />} />
           <Route path="/bom-upload" element={<BomUpload />} />
+          <Route path="/column-mapping" element={<ColumnMapping />} />
         </Routes>
       </AnimatePresence>
     </div>

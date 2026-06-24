@@ -1,6 +1,8 @@
 import { CheckCircle } from "lucide-react";
+import { useState } from "react";
 
 export default function BomUpload() {
+  const [fileName, setFileName] = useState("");
   return (
     <div className="flex min-h-screen bg-[#f8fafc]">
 
@@ -136,9 +138,12 @@ export default function BomUpload() {
               1 Upload BOM
             </span>
 
-            <span className="text-slate-500">
-              2 Column Mapping
-            </span>
+         <button
+  onClick={() => (window.location.href = "/column-mapping")}
+  className="text-slate-500 hover:text-blue-600"
+>
+  2 Column Mapping
+</button>
 
             <span className="text-slate-500">
               3 DNP Review
@@ -169,23 +174,22 @@ export default function BomUpload() {
           </div>
 
           <div className="rounded-xl border-2 border-dashed border-green-300 bg-green-50 p-16 text-center">
-            <CheckCircle
-              size={60}
-              className="mx-auto mb-4 text-green-600"
-            />
 
-            <p className="text-lg font-semibold">
-              NRI_SM100_BOM_V2.0.xlsx uploaded
-            </p>
+  <input
+    type="file"
+    accept=".xlsx,.xls,.csv"
+    className="mb-4"
+  />
 
-            <p className="mt-2 text-slate-500">
-              247 rows detected • 8 columns
-            </p>
+  <p className="text-lg font-semibold">
+    Select BOM File
+  </p>
 
-            <button className="mt-4 text-blue-600">
-              Replace File
-            </button>
-          </div>
+  <p className="text-slate-500">
+    Excel (.xlsx, .xls) or CSV
+  </p>
+
+</div>
 
           {/* Validation */}
           <div className="mt-6 rounded-xl bg-green-50 p-4">
@@ -206,9 +210,12 @@ export default function BomUpload() {
               Validate BOM
             </button>
 
-            <button className="rounded-lg bg-blue-600 px-5 py-2 text-white">
-              Continue to Column Mapping →
-            </button>
+            <button
+  onClick={() => (window.location.href = "/column-mapping")}
+  className="rounded-lg bg-blue-600 px-5 py-2 text-white"
+>
+  Continue to Column Mapping →
+</button>
           </div>
         </div>
 
