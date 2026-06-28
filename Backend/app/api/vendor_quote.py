@@ -22,16 +22,7 @@ def create_vendor_quote(
     db: Session = Depends(get_db)
 ):
 
-    new_quote = VendorQuote(
-        vendor_id=quote.vendor_id,
-        bom_id=quote.bom_id,
-        quoted_price=quote.quoted_price,
-        currency=quote.currency,
-        moq=quote.moq,
-        lead_time_days=quote.lead_time_days,
-        quote_date=quote.quote_date,
-        remarks=quote.remarks
-    )
+    new_quote = VendorQuote(**quote.model_dump())
 
     db.add(new_quote)
     db.commit()
@@ -71,7 +62,6 @@ def get_vendor_quote(
 
     return quote
 
-
 @router.put(
     "/vendor-quotes/{quote_id}",
     response_model=VendorQuoteResponse
@@ -92,20 +82,15 @@ def update_vendor_quote(
             detail="Vendor quote not found"
         )
 
-    quote.vendor_id = quote_data.vendor_id
-    quote.bom_id = quote_data.bom_id
-    quote.quoted_price = quote_data.quoted_price
-    quote.currency = quote_data.currency
-    quote.moq = quote_data.moq
-    quote.lead_time_days = quote_data.lead_time_days
-    quote.quote_date = quote_data.quote_date
-    quote.remarks = quote_data.remarks
+    update_data = quote_data.model_dump()
+
+    for key, value in update_data.items():
+        setattr(quote, key, value)
 
     db.commit()
     db.refresh(quote)
 
     return quote
-
 
 @router.delete("/vendor-quotes/{quote_id}")
 def delete_vendor_quote(

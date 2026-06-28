@@ -6,3 +6,5 @@ from app.models.version import Version
 from .bom import BOM
 from .vendor import Vendor
 from .vendor_quote import VendorQuote
+from .rfq import RFQ
+from .rfq_vendor import RFQVendor

@@ -29,6 +29,13 @@ class VendorQuote(Base):
         nullable=False
     )
 
+    rfq_id = Column(
+        Integer,
+        ForeignKey("rfqs.rfq_id")
+    )
+
+    quote_number = Column(String(50))
+
     quoted_price = Column(Float, nullable=False)
 
     currency = Column(String, default="INR")
@@ -38,6 +45,23 @@ class VendorQuote(Base):
     lead_time_days = Column(Integer)
 
     quote_date = Column(Date)
+
+    valid_until = Column(Date)
+
+    payment_terms = Column(String(100))
+
+    incoterms = Column(String(100))
+
+    quote_status = Column(
+        String(30),
+        default="Draft"
+    )
+
+    attachment_path = Column(String(255))
+
+    submitted_at = Column(DateTime)
+
+    approved_at = Column(DateTime)
 
     remarks = Column(String)
 

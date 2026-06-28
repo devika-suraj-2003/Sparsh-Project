@@ -9,6 +9,11 @@ from app.api.bom import router as bom_router
 from app.api.bom_upload import router as bom_upload
 from app.api.vendor import router as vendor_router
 from app.api.vendor_quote import router as vendor_quote_router
+from app.api.cost_comparison import router as cost_comparison_router
+from app.api.bom_cost import router as bom_cost_router
+from app.api.rfq import router as rfq_router
+from app.api.rfq_vendor import router as rfq_vendor_router
+from app.api.quote_comparison import router as quote_comparison_router
 
 
 app = FastAPI()
@@ -29,6 +34,11 @@ app.include_router(bom_router)
 app.include_router(bom_upload)
 app.include_router(vendor_router)
 app.include_router(vendor_quote_router)
+app.include_router(cost_comparison_router)
+app.include_router(bom_cost_router)
+app.include_router(rfq_router)
+app.include_router(rfq_vendor_router)
+app.include_router(quote_comparison_router)
 
 @app.get("/")
 def root():
