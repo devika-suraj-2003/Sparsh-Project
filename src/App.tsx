@@ -6,6 +6,7 @@ import ProjectDetails from "./pages/ProjectDetails";
 import ProjectBom from "./pages/ProjectBom";
 import BomUpload from "./pages/BomUpload";
 import ColumnMapping from "./pages/ColumnMapping";
+import About from './pages/About';
 import {
   
   Bell,
@@ -31,8 +32,11 @@ import {
   ChartBar
 } from 'lucide-react';
 import logo from './assets/logo.jpeg';
-import Dashboard from './dashboard/Dashboard';
-import About from './pages/About';
+import Dashboard from './app/components/Dashboard';
+import ProjectManagement from './app/components/ProjectManagement';
+import BOMManagement from './app/components/BOMManagement';
+import InventoryManagement from './app/components/InventoryManagement';
+import VendorManagement from './app/components/VendorManagement';
 
 function App() {
   const [showPassword, setShowPassword] = useState(false);
@@ -84,6 +88,7 @@ function App() {
     confirmPassword: ''
   });
   const [signUpLoading, setSignUpLoading] = useState(false);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   const passwordRegex = /(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}/;
@@ -133,10 +138,10 @@ const handleSignInSubmit = async () => {
   setSignInLoading(true);
 
   try {
-    const response = await fetch("http://127.0.0.1:8000/login", {
-      method: "POST",
+    const response = await fetch('http://127.0.0.1:8000/login', {
+      method: 'POST',
       headers: {
-        "Content-Type": "application/json",
+        'Content-Type': 'application/json',
       },
       body: JSON.stringify({
         email: signInData.email,
@@ -146,13 +151,14 @@ const handleSignInSubmit = async () => {
 
     const data = await response.json();
 
-    if (data.message === "Login Successful") {
-      navigate("/dashboard");
+    if (data.message === 'Login Successful') {
+      setIsAuthenticated(true);
+      navigate('/dashboard');
     } else {
       alert(data.message);
     }
   } catch (error) {
-    alert("Server Connection Failed");
+    alert('Server Connection Failed');
   } finally {
     setSignInLoading(false);
   }
@@ -165,6 +171,7 @@ const handleSignInSubmit = async () => {
       // simulate API
       await new Promise((r) => setTimeout(r, 900));
       // success - navigate to dashboard
+      setIsAuthenticated(true);
       navigate('/dashboard');
     } finally {
       setSignUpLoading(false);
@@ -173,6 +180,40 @@ const handleSignInSubmit = async () => {
 
   return (
     <div className="min-h-screen bg-surface text-slate-900">
+      {isAuthenticated && (
+        <>
+          <aside className="fixed inset-y-0 left-0 z-50 hidden w-80 border-r border-blue-900/30 bg-gradient-to-br from-[#1e3a8a] via-[#1e40af] to-[#2563eb] p-6 pb-8 shadow-glass backdrop-blur-xl xl:block">
+            <div className="mb-10 flex items-center gap-3">
+              <img src={logo} alt="SPARSHIQ logo" className="h-11 w-11 rounded-2xl border border-white/20 bg-white/10 p-2" />
+              <div>
+                <p className="text-sm font-semibold uppercase tracking-[0.28em] text-sky-200">SPARSHIQ ERP</p>
+                <h2 className="mt-1 text-lg font-semibold text-white">Enterprise Portal</h2>
+              </div>
+            </div>
+            <nav className="space-y-2">
+              {[
+                { to: '/dashboard', label: 'Dashboard' },
+                { to: '/project-management', label: 'Project Management' },
+                { to: '/bom', label: 'BOM Dashboard' },
+                { to: '/inventory', label: 'Inventory Dashboard' },
+                { to: '/vendors', label: 'Vendors' }
+              ].map((item) => (
+                <Link
+                  key={item.to}
+                  to={item.to}
+                  className={`flex rounded-3xl px-4 py-3 text-sm font-medium transition ${
+                    location.pathname === item.to
+                      ? 'bg-white/15 text-white shadow-sm shadow-white/10'
+                      : 'text-slate-200 hover:bg-white/10 hover:text-white'
+                  }`}
+                >
+                  {item.label}
+                </Link>
+              ))}
+            </nav>
+          </aside>
+        </>
+      )}
       <AnimatePresence mode="wait">
         <Routes>
           <Route
@@ -473,6 +514,10 @@ const handleSignInSubmit = async () => {
           <Route path="/project-bom" element={<ProjectBom />} />
           <Route path="/bom-upload" element={<BomUpload />} />
           <Route path="/column-mapping" element={<ColumnMapping />} />
+          <Route path="/project-management" element={<ProjectManagement />} />
+          <Route path="/bom" element={<BOMManagement />} />
+          <Route path="/inventory" element={<InventoryManagement />} />
+          <Route path="/vendors" element={<VendorManagement />} />
         </Routes>
       </AnimatePresence>
     </div>
