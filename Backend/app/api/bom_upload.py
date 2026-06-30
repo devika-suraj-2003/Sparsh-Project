@@ -1,6 +1,6 @@
 from fastapi import APIRouter, UploadFile, File, Form, Depends
 from sqlalchemy.orm import Session
-
+from app.services.upload_service import UploadService
 import os
 import pandas as pd
 
@@ -34,28 +34,18 @@ async def upload_bom(
         buffer.write(content)
 
     # Read Excel without assuming headers
-    raw_df = pd.read_excel(
-        file_path,
-        header=None
+    raw_df = UploadService.save_uploaded_file(
+        file_path
     )
 
     # Detect header row
-    header_row = None
-
-    for index, row in raw_df.iterrows():
-
-        row_values = [
-            str(value).strip().lower()
-            for value in row
-            if pd.notna(value)
+    header_row = UploadService.detect_header(
+        raw_df,
+        required_columns=[
+            "quantity",
+            "reference"
         ]
-
-        if (
-            "quantity" in row_values and
-            "reference" in row_values
-        ):
-            header_row = index
-            break
+)
 
     if header_row is None:
         return {
@@ -63,9 +53,9 @@ async def upload_bom(
         }
 
     # Read BOM with detected header
-    bom_df = pd.read_excel(
+    bom_df = UploadService.read_excel(
         file_path,
-        header=header_row
+        header_row
     )
 
     # Column mapping
@@ -102,17 +92,10 @@ async def upload_bom(
         ]
     }
 
-    detected_mapping = {}
-
-    for db_field, possible_names in column_mapping.items():
-
-        for column in bom_df.columns:
-
-            column_lower = str(column).strip().lower()
-
-            if column_lower in possible_names:
-                detected_mapping[db_field] = column
-                break
+    detected_mapping = UploadService.detect_columns(
+        bom_df,
+        column_mapping
+    )
 
     # Extract records
     bom_records = []
@@ -201,11 +184,14 @@ async def upload_bom(
         }
 
     # Remove existing BOM for same version
-    db.query(BOM).filter(
+    existing_bom = db.query(BOM).filter(
         BOM.version_id == version_id
-    ).delete()
+    ).first()
 
-    db.commit()
+    if existing_bom:
+        return {
+            "detail": "BOM already exists for this version. Please create a new version before uploading a new BOM."
+        }
 
     # Import records
     imported_count = 0

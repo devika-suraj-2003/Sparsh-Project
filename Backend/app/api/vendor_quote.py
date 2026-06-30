@@ -5,6 +5,11 @@ from app.db.dependencies import get_db
 
 from app.models.vendor_quote import VendorQuote
 
+import os
+import pandas as pd
+
+from fastapi.responses import FileResponse
+
 from app.schemas.vendor_quote import (
     VendorQuoteCreate,
     VendorQuoteResponse
@@ -12,6 +17,40 @@ from app.schemas.vendor_quote import (
 
 router = APIRouter(tags=["Vendor Quotes"])
 
+TEMPLATE_DIR = "templates"
+os.makedirs(TEMPLATE_DIR, exist_ok=True)
+
+
+@router.get("/vendor-quotes/template")
+def download_vendor_quote_template():
+
+    template_path = os.path.join(
+        TEMPLATE_DIR,
+        "Vendor_Quote_Template.xlsx"
+    )
+
+    df = pd.DataFrame({
+        "Manufacturer Part Number": [],
+        "Quantity": [],
+        "Unit Price": [],
+        "Lead Time (Days)": [],
+        "MOQ": [],
+        "Remarks": []
+    })
+
+    with pd.ExcelWriter(template_path, engine="openpyxl") as writer:
+        df.to_excel(writer, index=False)
+
+        worksheet = writer.sheets["Sheet1"]
+
+        for column_cells in worksheet.columns:
+            length = max(len(str(cell.value)) if cell.value else 0 for cell in column_cells)
+            worksheet.column_dimensions[column_cells[0].column_letter].width = length + 5
+
+    return FileResponse(
+        template_path,
+        filename="Vendor_Quote_Template.xlsx"
+    )
 
 @router.post(
     "/vendor-quotes",
