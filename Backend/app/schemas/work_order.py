@@ -7,6 +7,7 @@ class WorkOrderCreate(BaseModel):
     planned_quantity: int
     start_date: date
     target_date: date
+    finished_item_id: int
     remarks: str | None = None
 
 
@@ -18,6 +19,7 @@ class WorkOrderResponse(BaseModel):
     start_date: date
     target_date: date
     status: str
+    finished_item_id: int
     remarks: str | None
     created_at: datetime
 

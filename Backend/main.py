@@ -27,7 +27,7 @@ from app.api.inventory_reports import router as inventory_reports_router
 from app.api.work_order import router as work_order_router
 from app.api.material_allocation import router as material_allocation_router
 from app.api.production_entry import router as production_entry_router
-
+from app.api.finished_goods_receipt import router as finished_goods_receipt_router
 
 app = FastAPI()
 
@@ -65,6 +65,7 @@ app.include_router(inventory_reports_router)
 app.include_router(work_order_router)
 app.include_router(material_allocation_router)
 app.include_router(production_entry_router)
+app.include_router(finished_goods_receipt_router)
 
 @app.get("/")
 def root():

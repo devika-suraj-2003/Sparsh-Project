@@ -3,6 +3,8 @@ from datetime import datetime
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
+from app.models.item_master import ItemMaster
+
 from app.db.database import get_db
 
 from app.models.version import Version
@@ -42,6 +44,16 @@ def create_work_order(
     count = db.query(WorkOrder).count() + 1
 
     year = datetime.now().year
+    finished_item_id=work_order.finished_item_id,
+    finished_item = db.query(ItemMaster).filter(
+        ItemMaster.item_id == po.finished_item_id
+    ).first()
+
+    if not finished_item:
+        raise HTTPException(
+            status_code=404,
+            detail="Finished Item not found."
+        )
 
     work_order_number = f"WO-{year}-{count:04d}"
 

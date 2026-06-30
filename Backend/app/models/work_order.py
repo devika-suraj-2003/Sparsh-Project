@@ -17,6 +17,12 @@ class WorkOrder(Base):
         nullable=False
     )
 
+    finished_item_id = Column(
+        Integer,
+        ForeignKey("item_master.item_id"),
+        nullable=False
+    )
+
     planned_quantity = Column(Integer, nullable=False)
 
     start_date = Column(Date, nullable=False)

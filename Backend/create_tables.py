@@ -21,6 +21,7 @@ from app.models.stock_adjustment import StockAdjustment
 from app.models.work_order import WorkOrder
 from app.models.material_allocation import MaterialAllocation
 from app.models.production_entry import ProductionEntry
+from app.models.finished_goods_receipt import FinishedGoodsReceipt
 
 Base.metadata.create_all(bind=engine)
 
